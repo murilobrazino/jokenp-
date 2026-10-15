@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jokenpô em Python (PyScript)</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <!-- PyScript Core -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at top, #1e1b4b 0%, #0f172a 60%, #020617 100%);
+            min-height: 100vh;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="text-slate-100 flex flex-col justify-between items-center p-4 min-h-screen">
+
+    <header class="w-full max-w-2xl text-center my-4">
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-400 to-pink-500 bg-clip-text text-transparent">
+            Jokenpô Python
+        </h1>
+        <p class="text-slate-400 text-sm md:text-base mt-2">
+            Jogo rodando inteiramente em Python no seu navegador
+        </p>
+    </header>
+
+    <main class="w-full max-w-2xl flex flex-col gap-6">
+
+        <!-- Placar -->
+        <div class="glass-panel rounded-2xl p-4 flex justify-around items-center text-center shadow-xl">
+            <div>
+                <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Você</p>
+                <p id="player-score" class="text-3xl md:text-4xl font-extrabold text-cyan-400 mt-1">0</p>
+            </div>
+            <div class="h-10 w-[1px] bg-slate-700/60"></div>
+            <div>
+                <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Empates</p>
+                <p id="draw-score" class="text-3xl md:text-4xl font-extrabold text-amber-400 mt-1">0</p>
+            </div>
+            <div class="h-10 w-[1px] bg-slate-700/60"></div>
+            <div>
+                <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Computador</p>
+                <p id="computer-score" class="text-3xl md:text-4xl font-extrabold text-rose-400 mt-1">0</p>
+            </div>
+        </div>
+
+        <!-- Área de Combate -->
+        <div class="glass-panel rounded-3xl p-6 md:p-8 flex flex-col items-center gap-6 shadow-2xl relative overflow-hidden">
+            <div class="w-full flex justify-center">
+                <span id="result-badge" class="text-sm md:text-lg font-bold tracking-wide px-6 py-2 rounded-full bg-slate-800/80 border border-slate-700 text-slate-300 text-center transition-all duration-300">
+                    Clique em uma opção para jogar!
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 w-full gap-4 my-2">
+                <!-- Jogador -->
+                <div class="flex flex-col items-center gap-2">
+                    <span class="text-xs uppercase tracking-wider text-cyan-400 font-bold">Sua Escolha</span>
+                    <div class="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-slate-900/80 border-2 border-cyan-500/40 flex items-center justify-center text-4xl md:text-6xl shadow-inner">
+                        <span id="player-choice-icon">👤</span>
+                    </div>
+                </div>
+
+                <!-- Computador -->
+                <div class="flex flex-col items-center gap-2">
+                    <span class="text-xs uppercase tracking-wider text-rose-400 font-bold">Computador</span>
+                    <div class="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-slate-900/80 border-2 border-rose-500/40 flex items-center justify-center text-4xl md:text-6xl shadow-inner">
+                        <span id="computer-choice-icon">🤖</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões de Ação com IDs para o Python capturar -->
+            <div class="flex justify-center gap-3 md:gap-4 w-full mt-2">
+                <button id="btn-rock" class="flex-1 py-3 px-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/50 hover:border-cyan-400 transition-all transform active:scale-95 flex flex-col items-center gap-1 cursor-pointer">
+                    <span class="text-2xl">✊</span>
+                    <span class="text-xs font-semibold text-slate-300">Pedra</span>
+                </button>
+                <button id="btn-paper" class="flex-1 py-3 px-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/50 hover:border-cyan-400 transition-all transform active:scale-95 flex flex-col items-center gap-1 cursor-pointer">
+                    <span class="text-2xl">✋</span>
+                    <span class="text-xs font-semibold text-slate-300">Papel</span>
+                </button>
+                <button id="btn-scissors" class="flex-1 py-3 px-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600/50 hover:border-cyan-400 transition-all transform active:scale-95 flex flex-col items-center gap-1 cursor-pointer">
+                    <span class="text-2xl">✌️</span>
+                    <span class="text-xs font-semibold text-slate-300">Tesoura</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Histórico e Controles -->
+        <div class="glass-panel rounded-2xl p-4 flex flex-col gap-3">
+            <div class="flex justify-between items-center px-1">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Histórico da Sessão</h2>
+                <button id="btn-reset" class="text-xs text-rose-400 hover:text-rose-300 hover:underline cursor-pointer">
+                    🔄 Zerar Placar
+                </button>
+            </div>
+            <div id="history-list" class="max-h-32 overflow-y-auto flex flex-col gap-2 pr-1">
+                <!-- Histórico inserido pelo Python -->
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="my-4 text-center text-xs text-slate-500">
+        <p>Desenvolvido com Python 3 & PyScript</p>
+    </footer>
+
+    <!-- Lógica em Python Nativo com Event Listeners da PyScript -->
+    <script type="py">
+import random
+from pyscript import document
+from pyodide.ffi import create_proxy
+
+OPTIONS = {
+    'rock': {'name': 'Pedra', 'icon': '✊', 'beats': 'scissors'},
+    'paper': {'name': 'Papel', 'icon': '✋', 'beats': 'rock'},
+    'scissors': {'name': 'Tesoura', 'icon': '✌️', 'beats': 'paper'}
+}
+
+score = {'player': 0, 'computer': 0, 'draws': 0}
+history = []
+
+def play(player_choice):
+    global score, history
+
+    computer_choice = random.choice(list(OPTIONS.keys()))
+    player_info = OPTIONS[player_choice]
+    computer_info = OPTIONS[computer_choice]
+
+    document.getElementById('player-choice-icon').innerText = player_info['icon']
+    document.getElementById('computer-choice-icon').innerText = computer_info['icon']
+
+    result_badge = document.getElementById('result-badge')
+
+    if player_choice == computer_choice:
+        score['draws'] += 1
+        result = 'draw'
+        result_badge.innerText = f"Empate! Ambos escolheram {player_info['name']}."
+        result_badge.className = "text-sm md:text-lg font-bold tracking-wide px-6 py-2 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-center"
+    elif player_info['beats'] == computer_choice:
+        score['player'] += 1
+        result = 'win'
+        result_badge.innerText = f"Você Venceu! {player_info['name']} vence {computer_info['name']}."
+        result_badge.className = "text-sm md:text-lg font-bold tracking-wide px-6 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-center"
+    else:
+        score['computer'] += 1
+        result = 'lose'
+        result_badge.innerText = f"Computador Venceu! {computer_info['name']} vence {player_info['name']}."
+        result_badge.className = "text-sm md:text-lg font-bold tracking-wide px-6 py-2 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 text-center"
+
+    document.getElementById('player-score').innerText = str(score['player'])
+    document.getElementById('computer-score').innerText = str(score['computer'])
+    document.getElementById('draw-score').innerText = str(score['draws'])
+
+    history.insert(0, {
+        'player_icon': player_info['icon'],
+        'computer_icon': computer_info['icon'],
+        'result': result
+    })
+
+    render_history()
+
+def render_history():
+    history_container = document.getElementById('history-list')
+    history_container.innerHTML = ""
+
+    if not history:
+        history_container.innerHTML = '<p class="text-xs text-slate-500 text-center py-2">Nenhuma rodada jogada ainda.</p>'
+        return
+
+    for item in history[:5]:
+        div = document.createElement('div')
+        div.className = "flex justify-between items-center text-xs p-2 rounded-lg bg-slate-900/50 border border-slate-800"
+
+        if item['result'] == 'win':
+            status = '<span class="text-emerald-400 font-semibold">Vitória</span>'
+        elif item['result'] == 'lose':
+            status = '<span class="text-rose-400 font-semibold">Derrota</span>'
+        else:
+            status = '<span class="text-amber-400 font-semibold">Empate</span>'
+
+        div.innerHTML = f"<span>Você {item['player_icon']} vs {item['computer_icon']} Computador</span> {status}"
+        history_container.appendChild(div)
+
+def reset_game(event=None):
+    global score, history
+    score = {'player': 0, 'computer': 0, 'draws': 0}
+    history = []
+
+    document.getElementById('player-score').innerText = '0'
+    document.getElementById('computer-score').innerText = '0'
+    document.getElementById('draw-score').innerText = '0'
+
+    document.getElementById('player-choice-icon').innerText = '👤'
+    document.getElementById('computer-choice-icon').innerText = '🤖'
+
+    result_badge = document.getElementById('result-badge')
+    result_badge.innerText = "Placar zerado! Faça sua jogada."
+    result_badge.className = "text-sm md:text-lg font-bold tracking-wide px-6 py-2 rounded-full bg-slate-800/80 border border-slate-700 text-slate-300 text-center"
+
+    render_history()
+
+# Vincula os eventos de clique diretamente via Python ao carregar
+document.getElementById('btn-rock').addEventListener('click', create_proxy(lambda e: play('rock')))
+document.getElementById('btn-paper').addEventListener('click', create_proxy(lambda e: play('paper')))
+document.getElementById('btn-scissors').addEventListener('click', create_proxy(lambda e: play('scissors')))
+document.getElementById('btn-reset').addEventListener('click', create_proxy(reset_game))
+
+# Inicialização
+render_history()
+    </script>
+</body>
+</html>
